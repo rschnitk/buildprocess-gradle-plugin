@@ -1,17 +1,12 @@
-/*
- * Hibernate, Relational Persistence for Idiomatic Java
- *
- * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
- * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
- */
-repositories {
-	mavenCentral()
-}
-
 apply plugin: 'java-gradle-plugin'
+apply plugin: 'maven-publish'
 
 group = 'com.ceyoniq.gradle.buildprocess'
 version = '1.0.0-SNAPSHOT'
+
+repositories {
+	mavenCentral()
+}
 
 dependencies {
 	implementation gradleApi()
@@ -23,6 +18,10 @@ tasks.compileJava {
 	targetCompatibility = 11
 }
 
+java {
+    withSourcesJar()
+}
+
 gradlePlugin {
 	plugins {
 		buildprocess {
@@ -31,3 +30,71 @@ gradlePlugin {
 		}
 	}
 }
+
+publishing {
+    repositories {
+
+        if ( System.getenv('CI_JOB_TOKEN') != null ) { // test Gitlab CI
+	        maven {
+	            name = "gitlab"
+	            url = "https://source.ceyoniq.com/api/v4/projects/${System.getenv('CI_PROJECT_ID')}/packages/maven"
+	            credentials(HttpHeaderCredentials) {
+	                name = "Job-Token"
+	                value = System.getenv('CI_JOB_TOKEN')
+	            }
+	            authentication {
+	                header(HttpHeaderAuthentication)
+	            }
+	        }
+        } else { // local        
+            maven {
+                url "file:///${rootProject.projectDir}/upload"
+            }
+        }
+    }
+
+    publications {
+        mavenJava( MavenPublication ) {
+            from components.java
+
+            pom {
+				name = 'Buildprocess Plugin'
+				description = project.description
+                developers {
+					developer {
+						id = "AL"
+						name = "AL development"
+						organization = 'Ceyoniq.com'
+						email = "FE-ApplicationLayer@ct.com"
+					}
+                }
+            }
+        }
+    }            
+    generatePomFileForMavenJavaPublication {
+        destination = file( "$buildDir/libs/${project.name}-${project.version}.pom" )
+    }
+
+    generateMetadataFileForMavenJavaPublication {
+        outputFile = file( "$buildDir/libs/${project.name}-${project.version}.module" )
+    }
+}
+
+// task for artifacts/archives reference
+tasks.register("generatePom") {
+    dependsOn generatePomFileForMavenJavaPublication
+    group = "Build"
+    description = "Build maven pom artefact."
+    ext.destFile = generatePomFileForMavenJavaPublication.destination
+}
+
+// task for artifacts/archives reference
+tasks.register("generateModule") {
+    dependsOn generateMetadataFileForMavenJavaPublication
+    group = "Build"
+    description = "Build gradle module artefact."
+    ext.destFile = generateMetadataFileForMavenJavaPublication.outputFile
+}
+
+assemble.dependsOn generatePom
+assemble.dependsOn generateModule

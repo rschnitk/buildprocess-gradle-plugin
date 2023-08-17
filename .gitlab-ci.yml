@@ -1,0 +1,47 @@
+stages:
+  - assemble
+  - publish
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false"
+  GRADLE_USER_HOME: _gradle_home
+  
+# -----------------------------------------------------------------------------
+#   assemble: generate jars and other stuff
+# -----------------------------------------------------------------------------
+gradle assemble:
+    stage: assemble
+    image: eclipse-temurin:11-jdk
+    script:
+        - ./gradlew --warning-mode=all --build-cache assemble
+    artifacts:
+      when: on_success
+      expire_in: 1 days
+      paths:
+        - "**/build/libs/*.jar"
+    cache:
+        when: always
+        policy: pull-push
+        paths:
+          - _gradle_home/caches/
+          - _gradle_home/notifications/
+          - _gradle_home/wrapper/
+
+# -----------------------------------------------------------------------------
+#   publish
+# -----------------------------------------------------------------------------
+gradle publish:
+    stage: publish
+    image: eclipse-temurin:11-jdk
+    script:
+        - ./gradlew --warning-mode=all --build-cache publish
+    dependencies:
+      - gradle check
+    when: manual
+    cache:
+        when: always
+        policy: pull
+        paths:
+          - _gradle_home/caches/
+          - _gradle_home/notifications/
+          - _gradle_home/wrapper/
