@@ -29,18 +29,23 @@ public class VerInfo implements Serializable {
     private final String       branchName;
 
     public static VerInfo from( Project project ) {
-        return from( project.getRootProject().file( "buildprocess/version.properties") );
+        return from( project, project.getRootProject().file( "buildprocess/version.properties") );
     }
 
-    public static VerInfo from( File versionFile ) {
-        final Properties props = readVersionProperties( versionFile );
-        return new VerInfo( props );
+    public static VerInfo from( Project project, File versionFile ) {
+
+        var props = readVersionProperties( versionFile );
+        var verInfo = new VerInfo( props );
+        if ( project.getLogger().isInfoEnabled() ) {
+            project.getLogger().info( "buildprocess/version.properties: {} - verInfo: {}", props, verInfo );
+        }
+        return verInfo;
     }
 
     private VerInfo( Properties props ) {
 
-        this.majorMinor = props.getProperty( "major.minor" );
-        this.component = props.getProperty( "component" );
+        this.majorMinor = props.getProperty( "major.minor.version" );
+        this.component = props.getProperty( "component.version" );
         this.version = this.majorMinor + '.' + this.component;
         this.releaseDate = props.getProperty( "releasedate" );
 
@@ -110,6 +115,12 @@ public class VerInfo implements Serializable {
 
     public String getBranchName() {
         return branchName;
+    }
+
+    @Override
+    public String toString() {
+        return "VerInfo [majorMinor=" + majorMinor + ", component=" + component + ", version=" + version + ", releaseDate=" + releaseDate + ", fullVersion="
+                        + fullVersion + ", buildID=" + buildID + ", commitID=" + commitID + ", branchName=" + branchName + "]";
     }
 
     private static Properties readVersionProperties( File file ) {
