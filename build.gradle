@@ -25,7 +25,7 @@ java {
 gradlePlugin {
 	plugins {
 		buildprocess {
-			id = 'org.ceyoniq.gradle.buildprocess'
+			id = 'com.ceyoniq.gradle.buildprocess'
 			implementationClass = 'com.ceyoniq.gradle.buildprocess.BuildprocessPlugin'
 		}
 	}
@@ -33,7 +33,6 @@ gradlePlugin {
 
 publishing {
     repositories {
-
         if ( System.getenv('CI_JOB_TOKEN') != null ) { // test Gitlab CI
 	        maven {
 	            name = "gitlab"
@@ -52,49 +51,4 @@ publishing {
             }
         }
     }
-
-    publications {
-        mavenJava( MavenPublication ) {
-            from components.java
-
-            pom {
-				name = 'Buildprocess Plugin'
-				description = project.description
-                developers {
-					developer {
-						id = "AL"
-						name = "AL development"
-						organization = 'Ceyoniq.com'
-						email = "FE-ApplicationLayer@ct.com"
-					}
-                }
-            }
-        }
-    }            
-    generatePomFileForMavenJavaPublication {
-        destination = file( "$buildDir/libs/${project.name}-${project.version}.pom" )
-    }
-
-    generateMetadataFileForMavenJavaPublication {
-        outputFile = file( "$buildDir/libs/${project.name}-${project.version}.module" )
-    }
 }
-
-// task for artifacts/archives reference
-tasks.register("generatePom") {
-    dependsOn generatePomFileForMavenJavaPublication
-    group = "Build"
-    description = "Build maven pom artefact."
-    ext.destFile = generatePomFileForMavenJavaPublication.destination
-}
-
-// task for artifacts/archives reference
-tasks.register("generateModule") {
-    dependsOn generateMetadataFileForMavenJavaPublication
-    group = "Build"
-    description = "Build gradle module artefact."
-    ext.destFile = generateMetadataFileForMavenJavaPublication.outputFile
-}
-
-assemble.dependsOn generatePom
-assemble.dependsOn generateModule
