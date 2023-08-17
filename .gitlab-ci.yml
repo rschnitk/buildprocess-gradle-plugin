@@ -36,7 +36,7 @@ gradle publish:
     script:
         - ./gradlew --warning-mode=all --build-cache publish
     dependencies:
-      - gradle check
+      - gradle assemble
     when: manual
     cache:
         when: always
