@@ -27,7 +27,7 @@ tasks.withType(Javadoc).configureEach {
 
 gradlePlugin {
     website = 'https://www.ceyoniq.com'
-    vcsUrl = 'https://github.com/Schnitker/gradle-scripts'
+    vcsUrl = 'https://github.com/rschnitk/buildprocess-gradle-plugin'
 	plugins {
 		buildprocess {
 			id = 'com.ceyoniq.gradle.buildprocess'
@@ -39,24 +39,11 @@ gradlePlugin {
 	}
 }
 
-publishing {
-    repositories {
-        if ( System.getenv('CI_JOB_TOKEN') != null ) { // test Gitlab CI
-	        maven {
-	            name = "gitlab"
-	            url = "https://source.ceyoniq.com/api/v4/projects/${System.getenv('CI_PROJECT_ID')}/packages/maven"
-	            credentials(HttpHeaderCredentials) {
-	                name = "Job-Token"
-	                value = System.getenv('CI_JOB_TOKEN')
-	            }
-	            authentication {
-	                header(HttpHeaderAuthentication)
-	            }
-	        }
-        } else { // local        
-            maven {
-                url "file:///${rootProject.projectDir}/upload"
-            }
+// test local publish
+if ( System.getenv('CI_JOB_TOKEN') == null ) {
+	publishing {
+        maven {
+            url "file:///${rootProject.projectDir}/upload"
         }
-    }
+	}
 }

@@ -34,7 +34,7 @@ gradle publish:
     stage: publish
     image: eclipse-temurin:11-jdk
     script:
-        - ./gradlew --warning-mode=all --build-cache publish
+        - ./gradlew --warning-mode=all --build-cache publishPlugins
     dependencies:
       - gradle assemble
     when: manual

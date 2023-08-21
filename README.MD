@@ -1,6 +1,4 @@
-# NAPPL Gradle Plugins
-
-[Confluence page](https://confluence.ceyoniq.com/x/QYDxBg)
+# Buildprocess gradle plugin
 
 ## Usage
 
