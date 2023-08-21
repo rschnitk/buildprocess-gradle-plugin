@@ -12,44 +12,63 @@ import java.util.Base64;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
 
-public class UploadBomTask extends DefaultTask {
+/**
+ * UploadBom Task class
+ */
+public abstract class UploadBomTask extends DefaultTask {
 
+    /**
+     * Get the bom file
+     * @return the bom file as RegularFileProperty
+     */
     @InputFile
-    private File bomFile;
+    public abstract RegularFileProperty getBomFile();
 
+    /**
+     * Get the uri
+     * @return the uri for bom upload (e.g. "http://001linuxserver01.ct.com:8888/api/v1/bom" )
+     */
     @Input
-    private String uri; // "http://001linuxserver01.ct.com:8888/api/v1/bom"
+    public abstract Property<String> getUri();
 
+    /**
+     * Get dependency track api key
+     * @return dependency track api key
+     */
     @Input
-    private String apiKey;
+    public abstract Property<String> getApiKey();
 
+    /**
+     * Get dependency track project uuid
+     * @return dependency track project uuid
+     */
     @Input
-    private String projectUUID;
+    public abstract Property<String> getProjectUUID();
 
-    public UploadBomTask() {
-        setGroup( "BOM" );
-    }
     
+    /**
+     * task action for UploadBomTask
+     * @throws InterruptedException on error
+     */
     @TaskAction
     public void uploadBom() throws InterruptedException {
 
-        if ( bomFile == null ) throw new GradleException( "bom file not set");
-        if ( apiKey == null ) throw new GradleException( "api key not set");
-        if ( projectUUID == null) throw new GradleException( "project uuid not set");
-
         try {            
-            String bom = Base64.getEncoder().encodeToString( Files.readAllBytes( this.bomFile.toPath() ) );
-            String json = "{ \"project\": \"" + this.projectUUID + "\", \"bom\": \"" + bom + "\" }";
+            File bomFile = getBomFile().getAsFile().get();
+            String bom = Base64.getEncoder().encodeToString( Files.readAllBytes( bomFile.toPath() ) );
+            String json = "{ \"project\": \"" + getProjectUUID().get() + "\", \"bom\": \"" + bom + "\" }";
         
             var client = HttpClient.newBuilder().version( HttpClient.Version.HTTP_1_1 ).build();
         
             var request = HttpRequest.newBuilder()
-                                     .uri( URI.create( this.uri ) )
-                                     .header( "X-Api-Key", this.apiKey )
+                                     .uri( URI.create( getUri().get() ) )
+                                     .header( "X-Api-Key", getApiKey().get() )
                                      .header( "Content-Type", "application/json" )
                                      .PUT( HttpRequest.BodyPublishers.ofString( json ) )
                                      .build();
@@ -60,43 +79,11 @@ public class UploadBomTask extends DefaultTask {
                 String body = response.body();
                 throw new GradleException( "upload bom failed with error body: " + body.substring( 0, 80 ) );
             }
-            getProject().getLogger().info( "BOM upload to {} successful.", this.uri );
+            getProject().getLogger().info( "BOM upload to {} successful.", getUri().get() );
 
         } catch ( IOException e ) {
             throw new GradleScriptException( "upload bom failed: " + e.getMessage(), e);
         }
         
-    }
-
-    public File getBomFile() {
-        return bomFile;
-    }
-
-    public void setBomFile( File bomFile ) {
-        this.bomFile = bomFile;
-    }
-    
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri( String url ) {
-        this.uri = url;
-    }
-
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    public void setApiKey( String apiKey ) {
-        this.apiKey = apiKey;
-    }
-
-    public String getProjectUUID() {
-        return projectUUID;
-    }
-
-    public void setProjectUUID( String projectUUID ) {
-        this.projectUUID = projectUUID;
     }
 }

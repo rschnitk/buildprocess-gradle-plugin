@@ -1,8 +1,10 @@
-apply plugin: 'java-gradle-plugin'
-apply plugin: 'maven-publish'
+plugins {
+    id 'java-gradle-plugin'
+    id 'com.gradle.plugin-publish' version '1.2.1'
+}
 
 group = 'com.ceyoniq.gradle.buildprocess'
-version = '1.0.0-SNAPSHOT'
+version = '1.0.0'
 
 repositories {
 	mavenCentral()
@@ -18,15 +20,21 @@ tasks.compileJava {
 	targetCompatibility = 11
 }
 
-java {
-    withSourcesJar()
+tasks.withType(Javadoc).configureEach {
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addBooleanOption('html5', true);
 }
 
 gradlePlugin {
+    website = 'https://www.ceyoniq.com'
+    vcsUrl = 'https://github.com/Schnitker/gradle-scripts'
 	plugins {
 		buildprocess {
 			id = 'com.ceyoniq.gradle.buildprocess'
 			implementationClass = 'com.ceyoniq.gradle.buildprocess.BuildprocessPlugin'
+			displayName = "Ceyoniq buildprocess tasks"
+			description = "Ceyoniq buildprocess tasks: version extension and bom upload"
+			tags.set( [ "ceyoniq", "bom upload", "version" ] )
 		}
 	}
 }
