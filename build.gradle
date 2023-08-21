@@ -41,9 +41,15 @@ gradlePlugin {
 
 // test local publish
 if ( System.getenv('CI_JOB_TOKEN') == null ) {
+
+    apply plugin: 'maven-publish'
+
 	publishing {
-        maven {
-            url "file:///${rootProject.projectDir}/upload"
-        }
+	    repositories {
+	        maven {
+	            name = 'localPluginRepository'
+                url "file:///${rootProject.projectDir}/upload"
+	        }
+	    }
 	}
 }
