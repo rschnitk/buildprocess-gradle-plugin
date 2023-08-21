@@ -4,7 +4,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
 /**
- * Buildprocess plugin: add extension "verInfo" and registers uploadBom task
+ * Buildprocess plug-in: add extension "verInfo"
  */
 public class BuildprocessPlugin implements Plugin< Project > {
 

@@ -1,6 +1,5 @@
 package com.ceyoniq.gradle.buildprocess;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -19,34 +18,46 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
 
 /**
- * UploadBom Task class
+ * UploadBom task class <p>
+ * 
+ * Usage: <code><pre>
+    tasks.register("uploadBom", com.ceyoniq.gradle.buildprocess.UploadBomTask) {
+       uri         = "http://001linuxserver01.ct.com:8888/api/v1/bom"
+       bomFile     = new File(cyclonedxBom.destination.get(), 'bom.json')
+
+       apiKey      = providers.gradleProperty('dtrack.api.key').get();
+       projectUUID = providers.gradleProperty('dtrack.project.id').get()
+       
+       dependsOn cyclonedxBom
+    }
+ </pre></code> 
  */
 public abstract class UploadBomTask extends DefaultTask {
 
     /**
-     * Get the bom file
-     * @return the bom file as RegularFileProperty
+     * Get BOM file as regular file property
+     * @return BOM as RegularFileProperty
      */
     @InputFile
     public abstract RegularFileProperty getBomFile();
 
     /**
-     * Get the uri
-     * @return the uri for bom upload (e.g. "http://001linuxserver01.ct.com:8888/api/v1/bom" )
+     * Get the URI of Dependency Track server
+     * @return the URI for BOM upload (e.g. "http://001linuxserver01.ct.com:8888/api/v1/bom" )
      */
     @Input
     public abstract Property<String> getUri();
 
     /**
-     * Get dependency track api key
-     * @return dependency track api key
+     * Get Dependency Track API key
+     * @return Dependency Track API key
      */
     @Input
     public abstract Property<String> getApiKey();
 
     /**
-     * Get dependency track project uuid
-     * @return dependency track project uuid
+     * Get Dependency Track project UUID
+     * @return Dependency Track project UUID
      */
     @Input
     public abstract Property<String> getProjectUUID();
@@ -60,9 +71,9 @@ public abstract class UploadBomTask extends DefaultTask {
     public void uploadBom() throws InterruptedException {
 
         try {            
-            File bomFile = getBomFile().getAsFile().get();
-            String bom = Base64.getEncoder().encodeToString( Files.readAllBytes( bomFile.toPath() ) );
-            String json = "{ \"project\": \"" + getProjectUUID().get() + "\", \"bom\": \"" + bom + "\" }";
+            var bomFile = getBomFile().getAsFile().get();
+            var bomBase64 = Base64.getEncoder().encodeToString( Files.readAllBytes( bomFile.toPath() ) );
+            var json = "{ \"project\": \"" + getProjectUUID().get() + "\", \"bom\": \"" + bomBase64 + "\" }";
         
             var client = HttpClient.newBuilder().version( HttpClient.Version.HTTP_1_1 ).build();
         
@@ -77,7 +88,10 @@ public abstract class UploadBomTask extends DefaultTask {
 
             if ( response.statusCode() != 200 ) {
                 String body = response.body();
-                throw new GradleException( "upload bom failed with error body: " + body.substring( 0, 80 ) );
+                if ( body.length() > 80 ) {
+                    body = body.substring( 0, 80 );
+                }
+                throw new GradleException( "upload bom failed with error " + response.statusCode() + ", body: " + body );
             }
             getProject().getLogger().info( "BOM upload to {} successful.", getUri().get() );
 
