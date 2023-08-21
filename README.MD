@@ -38,11 +38,14 @@ tasks.register("buildVersion") {
     group = "Help"
     description = "Print build version."
     doLast {
-        println "Build version:   " + version
-        println "Full version:    " + verInfo_fullVersion
-        println "Major-Minor:     " + verInfo_majorMinor
-        println "Component:       " + verInfo_component
-        println "Build timestamp: " + verInfo_buildTimestamp
+        println "Build version:   " + project.version
+        println "Major-Minor:     " + project.verInfo.majorMinor
+        println "Component:       " + project.verInfo.component
+        println "Full version:    " + project.verInfo.fullVersion
+        println "releaseDate:     " + project.verInfo.releaseDate
+        println "Rev/BuildID:     " + project.verInfo.buildID
+        println "branchName:      " + project.verInfo.branchName
+        println "commitID:        " + project.verInfo.commitID
     }
 }
 ```
@@ -54,13 +57,13 @@ The uploadBom task sends an POST request to an Dependency Track Service.
 
 Configuration:
 ```groovy
-tasks.named("uploadBom").configure {
-    uri     = "http://001linuxserver01.ct.com:8888/api/v1/bom"
-    bomFile = new File(cyclonedxBom.destination.get(), 'bom.json')
+tasks.register("uploadBom", com.ceyoniq.gradle.buildprocess.UploadBomTask) {
+    uri         = "http://dependency-track-host.domain.com:8888/api/v1/bom"
+    bomFile     = new File(cyclonedxBom.destination.get(), 'bom.json')
 
     apiKey      = providers.gradleProperty('dtrack.api.key').get();
     projectUUID = providers.gradleProperty('dtrack.project.id').get()
-    
+   
     dependsOn cyclonedxBom
 }
 ```
