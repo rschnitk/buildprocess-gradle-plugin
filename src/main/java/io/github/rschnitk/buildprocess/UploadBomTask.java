@@ -1,4 +1,4 @@
-package com.ceyoniq.gradle.buildprocess;
+package io.github.rschnitk.buildprocess;
 
 import java.io.IOException;
 import java.net.URI;

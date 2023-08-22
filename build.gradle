@@ -3,7 +3,7 @@ plugins {
     id 'com.gradle.plugin-publish' version '1.2.1'
 }
 
-group = 'com.ceyoniq.gradle.buildprocess'
+group = 'io.github.rschnitk'
 version = '1.0.0'
 
 repositories {
@@ -26,15 +26,15 @@ tasks.withType(Javadoc).configureEach {
 }
 
 gradlePlugin {
-    website = 'https://www.ceyoniq.com'
-    vcsUrl = 'https://github.com/rschnitk/buildprocess-gradle-plugin'
+    website = 'https://github.com/rschnitk/buildprocess-gradle-plugin'
+    vcsUrl  = 'https://github.com/rschnitk/buildprocess-gradle-plugin'
 	plugins {
 		buildprocess {
-			id = 'com.ceyoniq.gradle.buildprocess'
-			implementationClass = 'com.ceyoniq.gradle.buildprocess.BuildprocessPlugin'
-			displayName = "Ceyoniq buildprocess tasks"
-			description = "Ceyoniq buildprocess tasks: version extension and bom upload"
-			tags.set( [ "ceyoniq", "bom upload", "version" ] )
+			id = 'io.github.rschnitk.buildprocess'
+			implementationClass = 'io.github.rschnitk.buildprocess.BuildprocessPlugin'
+			displayName = "Buildprocess and CI tasks"
+			description = "Buildprocess tasks: version extension and bom upload to dependency track service"
+			tags.set( [ "bom upload", "dependency track", "version" ] )
 		}
 	}
 }

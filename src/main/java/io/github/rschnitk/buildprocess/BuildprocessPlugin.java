@@ -1,4 +1,4 @@
-package com.ceyoniq.gradle.buildprocess;
+package io.github.rschnitk.buildprocess;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
