@@ -28,7 +28,8 @@ buildscript {
 ## Extensions
 
 ### `verInfo`
-The verInfo extension reads the buildprocess/version file and detect some CI variables.
+The verInfo extension reads the 'buildprocess/version.properties' file and detect some CI variables.
+Supported CI Server: Gitlab, Jenkins and ABTS.
 
 Configuration:
 ```groovy
@@ -36,7 +37,7 @@ tasks.register("buildVersion") {
     group = "Help"
     description = "Print build version."
     doLast {
-        println "Build version:   " + project.version
+        println "Build version:   " + project.verInfo.version
         println "Major-Minor:     " + project.verInfo.majorMinor
         println "Component:       " + project.verInfo.component
         println "Full version:    " + project.verInfo.fullVersion
