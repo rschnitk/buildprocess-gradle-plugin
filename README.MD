@@ -6,14 +6,14 @@
 
 ```groovy
 plugins {
-  id "com.ceyoniq.gradle.buildprocess" version "$version"
+  id "io.github.rschnitk.buildprocess" version "$version"
 }
 ```
 or via the
 
 ### `buildscript` block:
 ```groovy
-apply plugin: "com.ceyoniq.gradle.buildprocess"
+apply plugin: "io.github.rschnitk.buildprocess"
 
 buildscript {
   repositories {
@@ -21,7 +21,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.ceyoniq.gradle.buildprocess:nappl-gradle-plugins:$version"
+    classpath "io.github.rschnitk.buildprocess:buildprocess-gradle-plugin:$version"
   }
 }
 ```
@@ -56,7 +56,7 @@ The uploadBom task sends an POST request to an Dependency Track Service.
 
 Configuration:
 ```groovy
-tasks.register("uploadBom", com.ceyoniq.gradle.buildprocess.UploadBomTask) {
+tasks.register("uploadBom", io.github.rschnitk.buildprocess.UploadBomTask) {
     uri         = "http://dependency-track-host.domain.com:8888/api/v1/bom"
     bomFile     = new File(cyclonedxBom.destination.get(), 'bom.json')
 
