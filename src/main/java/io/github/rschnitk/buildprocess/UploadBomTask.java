@@ -91,6 +91,7 @@ public abstract class UploadBomTask extends DefaultTask {
 
             var sslContext = SSLContext.getDefault();
             if ( Boolean.TRUE.equals( getTrustAll().get() ) ) {
+                sslContext = SSLContext.getInstance( "TLS" );
                 sslContext.init( null, new TrustManager[] { new NonValidatingTM() }, new SecureRandom() );
             }
 
