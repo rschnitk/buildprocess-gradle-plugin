@@ -6,7 +6,15 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
+import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Base64;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -62,21 +70,35 @@ public abstract class UploadBomTask extends DefaultTask {
     @Input
     public abstract Property<String> getProjectUUID();
 
+    /**
+     * Trust all certificates?
+     * @return true if check should be skipped
+     */
+    @Input
+    public abstract Property<Boolean> getTrustAll();
     
     /**
      * task action for UploadBomTask
      * @throws InterruptedException on error
      */
     @TaskAction
-    public void uploadBom() throws InterruptedException {
+    public void uploadBom() throws InterruptedException, GeneralSecurityException {
 
         try {            
             var bomFile = getBomFile().getAsFile().get();
             var bomBase64 = Base64.getEncoder().encodeToString( Files.readAllBytes( bomFile.toPath() ) );
             var json = "{ \"project\": \"" + getProjectUUID().get() + "\", \"bom\": \"" + bomBase64 + "\" }";
-        
-            var client = HttpClient.newBuilder().version( HttpClient.Version.HTTP_1_1 ).build();
-        
+
+            var sslContext = SSLContext.getDefault();
+            if ( Boolean.TRUE.equals( getTrustAll().get() ) ) {
+                sslContext.init( null, new TrustManager[] { new NonValidatingTM() }, new SecureRandom() );
+            }
+
+            var client = HttpClient.newBuilder()
+                                   .version( HttpClient.Version.HTTP_1_1 )
+                                   .sslContext( sslContext )
+                                   .build();
+            
             var request = HttpRequest.newBuilder()
                                      .uri( URI.create( getUri().get() ) )
                                      .header( "X-Api-Key", getApiKey().get() )
@@ -98,6 +120,24 @@ public abstract class UploadBomTask extends DefaultTask {
         } catch ( IOException e ) {
             throw new GradleScriptException( "upload bom failed: " + e.getMessage(), e);
         }
-        
+    }
+
+    private static class NonValidatingTM implements X509TrustManager {
+        @Override
+        @SuppressWarnings({"java:S1186", "java:S4830"})
+        public void checkClientTrusted ( X509Certificate[] paramArrayOfX509Certificate, 
+                                         String paramString ) throws CertificateException {
+        }
+
+        @Override
+        @SuppressWarnings({"java:S1186", "java:S4830"})
+        public void checkServerTrusted ( X509Certificate[] paramArrayOfX509Certificate, 
+                                         String paramString ) throws CertificateException {
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers () {
+            return new X509Certificate [ 0 ];
+        }
     }
 }
