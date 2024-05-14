@@ -30,7 +30,7 @@ import org.gradle.api.tasks.TaskAction;
  * 
  * Usage: <code><pre>
     tasks.register("uploadBom", com.ceyoniq.gradle.buildprocess.UploadBomTask) {
-       uri         = "http://001linuxserver01.ct.com:8888/api/v1/bom"
+       uri         = "https://dependency-track-server/api/v1/bom"
        bomFile     = new File(cyclonedxBom.destination.get(), 'bom.json')
 
        apiKey      = providers.gradleProperty('dtrack.api.key').get();
@@ -51,7 +51,7 @@ public abstract class UploadBomTask extends DefaultTask {
 
     /**
      * Get the URI of Dependency Track server
-     * @return the URI for BOM upload (e.g. "http://001linuxserver01.ct.com:8888/api/v1/bom" )
+     * @return the URI for BOM upload (e.g. "https://dependency-track-server/api/v1/bom" )
      */
     @Input
     public abstract Property<String> getUri();
@@ -76,6 +76,13 @@ public abstract class UploadBomTask extends DefaultTask {
      */
     @Input
     public abstract Property<Boolean> getTrustAll();
+        
+    /**
+     * Ignore upload error
+     * @return true if ignore
+     */
+    @Input
+    public abstract Property<Boolean> getIgnoreFailures();    
     
     /**
      * task action for UploadBomTask
@@ -110,11 +117,15 @@ public abstract class UploadBomTask extends DefaultTask {
             var response = client.send( request, HttpResponse.BodyHandlers.ofString() );
 
             if ( response.statusCode() != 200 ) {
-                String body = response.body();
-                if ( body.length() > 80 ) {
-                    body = body.substring( 0, 80 );
+                if ( ! getIgnoreFailures().get() ) {
+                    String body = response.body();
+                    if ( body.length() > 80 ) {
+                        body = body.substring( 0, 80 );
+                    }
+                    throw new GradleException( "upload bom failed with error " + response.statusCode() + ", body: " + body );
+                } else {
+                    getProject().getLogger().warn( "BOM upload failed. Failure ignored." );
                 }
-                throw new GradleException( "upload bom failed with error " + response.statusCode() + ", body: " + body );
             }
             getProject().getLogger().info( "BOM upload to {} successful.", getUri().get() );
 

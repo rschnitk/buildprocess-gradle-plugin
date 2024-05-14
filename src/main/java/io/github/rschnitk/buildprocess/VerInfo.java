@@ -92,12 +92,12 @@ public class VerInfo implements Serializable {
             this.fullVersion = this.version + '.' + System.getenv( "CI_PIPELINE_ID" );
             this.buildID     = System.getenv( "CI_PIPELINE_ID" );
             this.commitID    = System.getenv( "CI_COMMIT_SHA" );
-            this.branchName  = System.getenv( "CI_COMMIT_BRANCH" );
+            this.branchName  = System.getenv( "CI_COMMIT_REF_NAME" );
             
         } else if ( System.getenv("GIT_COMMIT") != null ) { // Jenkins
             
             String revision = System.getenv( "BUILD_TIMESTAMP" ) != null ? System.getenv( "BUILD_TIMESTAMP" ) 
-                                                                         : System.getenv( "BUILD_NUMBER" );
+                                                                               : System.getenv( "BUILD_NUMBER" );
 
             this.fullVersion = this.version + '.' + revision;
             this.buildID     = System.getenv( "BUILD_NUMBER" );

@@ -57,10 +57,10 @@ The uploadBom task sends an POST request to an Dependency Track Service.
 Configuration:
 ```groovy
 tasks.register("uploadBom", io.github.rschnitk.buildprocess.UploadBomTask) {
-    uri         = "http://dependency-track-host.domain.com:8888/api/v1/bom"
+    uri         = "https://dependency-track-host.domain.com:8888/api/v1/bom"
     bomFile     = new File(cyclonedxBom.destination.get(), 'bom.json')
 
-    apiKey      = providers.gradleProperty('dtrack.api.key').get();
+    apiKey      = providers.gradleProperty('dtrack.api.key').get()
     projectUUID = providers.gradleProperty('dtrack.project.id').get()
    
     dependsOn cyclonedxBom
