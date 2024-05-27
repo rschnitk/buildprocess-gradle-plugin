@@ -74,14 +74,14 @@ public abstract class UploadBomTask extends DefaultTask {
      * Trust all certificates?
      * @return true if check should be skipped
      */
-    @Input
+    @Input @Optional
     public abstract Property<Boolean> getTrustAll();
         
     /**
      * Ignore upload error
      * @return true if ignore
      */
-    @Input
+    @Input @Optional
     public abstract Property<Boolean> getIgnoreFailures();    
     
     /**
