@@ -98,7 +98,7 @@ public abstract class UploadBomTask extends DefaultTask {
             var json = "{ \"project\": \"" + getProjectUUID().get() + "\", \"bom\": \"" + bomBase64 + "\" }";
 
             var sslContext = SSLContext.getDefault();
-            if ( Boolean.TRUE.equals( getTrustAll().get() ) ) {
+            if ( getTrustAll().getOrElse(false) ) {
                 sslContext = SSLContext.getInstance( "TLS" );
                 sslContext.init( null, new TrustManager[] { new NonValidatingTM() }, new SecureRandom() );
             }
@@ -118,17 +118,17 @@ public abstract class UploadBomTask extends DefaultTask {
             var response = client.send( request, HttpResponse.BodyHandlers.ofString() );
 
             if ( response.statusCode() != 200 ) {
-                if ( ! getIgnoreFailures().get() ) {
+                if ( ! getIgnoreFailures().getOrElse(false) ) {
                     String body = response.body();
                     if ( body.length() > 80 ) {
                         body = body.substring( 0, 80 );
                     }
                     throw new GradleException( "upload bom failed with error " + response.statusCode() + ", body: " + body );
                 } else {
-                    getProject().getLogger().warn( "BOM upload failed. Failure ignored." );
+                    getLogger().warn( "BOM upload failed. Failure ignored." );
                 }
             }
-            getProject().getLogger().info( "BOM upload to {} successful.", getUri().get() );
+            getLogger().info( "BOM upload to {} successful.", getUri().get() );
 
         } catch ( IOException e ) {
             throw new GradleScriptException( "upload bom failed: " + e.getMessage(), e);
