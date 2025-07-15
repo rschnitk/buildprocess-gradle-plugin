@@ -10,6 +10,9 @@ import java.util.Properties;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 public class VerInfo implements Serializable {
 
@@ -32,42 +35,52 @@ public class VerInfo implements Serializable {
     private final String       branchName;
 
     // ------------------------------------------------------------------------------------
-    
+
+    /**
+     * @param settings  the gradle settings object
+     * @return version information from version.properties
+     */
+    public static VerInfo from( Settings settings ) {
+        File verFile = new File(settings.getSettingsDir(), "buildprocess/version.properties" );
+        return from( Logging.getLogger(Settings.class), verFile );
+    }
+
     /**
      * @param project the current project
      * @return version information from version.properties
      */
     public static VerInfo from( Project project ) {
-        return from( project, project.getRootProject().file( "buildprocess/version.properties") );
+        File verFile = project.getRootProject().file( "buildprocess/version.properties");
+        return from( project.getLogger(), verFile );
     }
 
     /**
-     * @param project the current project
+     * @param logger the logger
      * @param versionFile the version file (default: "buildprocess/version.properties")
      * @return version information from version.properties
      */
-    public static VerInfo from( Project project, File versionFile ) {
+    public static VerInfo from( Logger logger, File versionFile ) {
 
-        var props = readVersionProperties( versionFile );
+        var props = readVersionProperties( logger, versionFile );
         var verInfo = new VerInfo( props );
-        if ( project.getLogger().isInfoEnabled() ) {
-            project.getLogger().info( "buildprocess/version.properties: {} - verInfo: {}", props, verInfo );
+        if ( logger != null && logger.isInfoEnabled() ) {
+            logger.info( "file {}: {} - verInfo: {}", versionFile, props, verInfo );
         }
         return verInfo;
     }
 
-    private static Properties readVersionProperties( File file ) {
-        if ( !file.exists() ) {
-            throw new GradleException( "Version file $file.canonicalPath does not exists" );
-        }
-
+    private static Properties readVersionProperties( Logger logger, File file ) {
         final Properties versionProperties = new Properties();
+
+        if ( !file.exists() ) {
+            logger.warn( "Version file '{}' does not exists", file );
+            return versionProperties;
+        }
         try ( final FileInputStream fis = new FileInputStream( file )) {
             versionProperties.load( fis );
         } catch ( IOException e ) {
-            throw new GradleException( "Error reading file stream = " + file.getAbsolutePath(), e );
+            logger.warn( "Error reading file stream = {}: {}", file.getAbsolutePath(), e.getMessage() );
         }
-
         return versionProperties;
     }
 
