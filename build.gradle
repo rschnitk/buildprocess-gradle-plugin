@@ -48,7 +48,7 @@ if ( System.getenv('CI_JOB_TOKEN') == null ) {
 	    repositories {
 	        maven {
 	            name = 'localPluginRepository'
-                url "file:///${rootProject.projectDir}/upload"
+                url = "file:///${rootProject.projectDir}/upload"
 	        }
 	    }
 	}
